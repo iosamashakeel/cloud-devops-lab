@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devops-lab-web
+  labels:
+    app: devops-lab-web
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: devops-lab-web
+  template:
+    metadata:
+      labels:
+        app: devops-lab-web
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: html
+              mountPath: /usr/share/nginx/html
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+      volumes:
+        - name: html
+          configMap:
+            name: devops-lab-html
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: devops-lab-html
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8">
+      <title>DevOps Lab — k8s</title>
+    </head>
+    <body>
+      <h1>Served from Kubernetes</h1>
+      <p>If you see this page, your Deployment is up and the Service is routing traffic to it.</p>
+    </body>
+    </html>
