@@ -1,0 +1,80 @@
+---
+# Provision a web server with nginx — idempotent: safe to re-run.
+# Usage:
+#   ansible-playbook webserver.yml                 # all inventory hosts
+#   ansible-playbook webserver.yml -l local        # just this machine
+#   ansible-playbook webserver.yml --check         # dry run
+
+- name: Configure web servers
+  hosts: webservers:local
+  become: true
+
+  vars:
+    docroot: /var/www/devops-lab
+
+  tasks:
+    - name: Install nginx
+      ansible.builtin.package:
+        name: nginx
+        state: present
+      tags: [packages]
+
+    - name: Create document root
+      ansible.builtin.file:
+        path: "{{ docroot }}"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: "0755"
+      tags: [content]
+
+    - name: Deploy nginx server block
+      ansible.builtin.template:
+        src: templates/nginx.conf.j2
+        dest: /etc/nginx/sites-available/devops-lab.conf
+        mode: "0644"
+      notify: Reload nginx
+      tags: [config]
+
+    - name: Enable the site
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/devops-lab.conf
+        dest: /etc/nginx/sites-enabled/devops-lab.conf
+        state: link
+      notify: Reload nginx
+      tags: [config]
+
+    - name: Remove default site (avoid port conflict)
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Reload nginx
+      tags: [config]
+
+    - name: Deploy landing page
+      ansible.builtin.copy:
+        src: files/index.html
+        dest: "{{ docroot }}/index.html"
+        owner: www-data
+        group: www-data
+        mode: "0644"
+      tags: [content]
+
+    - name: Ensure nginx is running and enabled
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+      tags: [service]
+
+    - name: Verify nginx answers on port 80
+      ansible.builtin.uri:
+        url: "http://localhost:{{ http_port | default(80) }}"
+        status_code: 200
+      tags: [verify]
+
+  handlers:
+    - name: Reload nginx
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded

@@ -1,0 +1,15 @@
+# Rendered per host by Ansible — {{ server_name }} on {{ inventory_hostname }}
+server {
+    listen {{ http_port | default(80) }};
+    server_name {{ server_name | default('devops-lab.local') }};
+
+    root {{ docroot | default('/var/www/devops-lab') }};
+    index index.html;
+
+    access_log /var/log/nginx/devops-lab.access.log;
+    error_log  /var/log/nginx/devops-lab.error.log;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}
