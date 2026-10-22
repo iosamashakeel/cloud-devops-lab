@@ -1,0 +1,30 @@
+# Alert rules for the DevOps Lab monitoring exercise.
+# They are evaluated every 15 seconds (see evaluation_interval in prometheus.yml).
+# Alerts show up in the Prometheus UI under "Alerts" while they fire.
+
+groups:
+  - name: example
+    rules:
+      # Fires if Prometheus has not successfully scraped a target
+      # for more than one minute. Useful to detect a dead exporter.
+      - alert: InstanceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Instance {{ $labels.instance }} is down"
+          description: >-
+            Prometheus failed to scrape {{ $labels.job }} ({{ $labels.instance }})
+            for more than one minute.
+
+      # Fires when host CPU usage stays above 80% for 5 minutes.
+      # Based on node-exporter metrics, averaged over a 5-minute window.
+      - alert: HighCpuLoad
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU load on {{ $labels.instance }}"
+          description: "CPU usage has been above 80% for more than 5 minutes."
