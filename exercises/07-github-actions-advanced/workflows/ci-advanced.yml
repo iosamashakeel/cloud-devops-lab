@@ -1,0 +1,57 @@
+name: CI Advanced
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "app.py"
+      - "test_app.py"
+      - "requirements.txt"
+      - ".github/workflows/**"
+  pull_request:
+    paths:
+      - "app.py"
+      - "test_app.py"
+      - "requirements.txt"
+      - ".github/workflows/**"
+  workflow_dispatch:
+    inputs:
+      python-version:
+        description: "Python version to test manually"
+        required: false
+        default: "3.12"
+
+# If you push twice in a row, cancel the older in-progress run for
+# the same branch instead of letting both fight over the deploy gate.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    uses: ./.github/workflows/reusable-test.yml
+    with:
+      python-versions: '["3.10", "3.11", "3.12"]'
+
+  lint:
+    # Only lint once, on the newest Python, instead of three times.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile-check all Python files
+        run: python3 -m compileall app.py test_app.py
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy (placeholder step — replace with your real deploy)
+        run: |
+          echo "Deploying commit ${{ github.sha }} to production"
+          python3 app.py

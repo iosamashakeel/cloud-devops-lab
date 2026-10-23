@@ -1,0 +1,2 @@
+# No third-party dependencies — the app and tests use only the stdlib.
+# Kept as a file so the pip install step in the workflow is realistic.
