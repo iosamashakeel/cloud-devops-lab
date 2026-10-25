@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Notes — Compose demo</title>
+</head>
+<body>
+  <h1>Notes</h1>
+  <p>Served by nginx. The notes below come from the API, through the database.</p>
+  <ul id="notes"></ul>
+  <script>
+    fetch('/api/notes')
+      .then((r) => r.json())
+      .then((notes) => {
+        const list = document.getElementById('notes');
+        notes.forEach((note) => {
+          const item = document.createElement('li');
+          item.textContent = note.title + ' — ' + note.body;
+          list.appendChild(item);
+        });
+      })
+      .catch(() => {
+        document.getElementById('notes').textContent = 'Could not load notes.';
+      });
+  </script>
+</body>
+</html>
