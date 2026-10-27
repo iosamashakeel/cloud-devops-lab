@@ -1,0 +1,15 @@
+myapp is installed as release {{ .Release.Name }}.
+
+Get the welcome page with:
+
+  kubectl port-forward svc/{{ .Release.Name }}-myapp 8080:80
+
+Then open http://localhost:8080 in your browser.
+
+See the applied values with:
+
+  helm get values {{ .Release.Name }}
+
+Uninstall with:
+
+  helm uninstall {{ .Release.Name }}

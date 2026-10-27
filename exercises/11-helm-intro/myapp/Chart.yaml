@@ -1,0 +1,6 @@
+apiVersion: v2
+name: myapp
+description: A small Helm chart for a web server with a custom welcome page
+type: application
+version: 0.1.0
+appVersion: "1.27"

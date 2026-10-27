@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-myapp
+  labels:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/name: myapp
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+    <head><title>myapp</title></head>
+    <body>
+    <h1>{{ .Values.welcomeMessage }}</h1>
+    <p>Served by release {{ .Release.Name }}.</p>
+    </body>
+    </html>

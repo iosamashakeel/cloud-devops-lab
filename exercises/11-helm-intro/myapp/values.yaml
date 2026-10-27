@@ -1,0 +1,25 @@
+# Default values for myapp.
+# Override any of these with --set or with your own -f values file.
+
+replicaCount: 1
+
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  # Overrides the appVersion in Chart.yaml when set.
+  tag: "1.27"
+
+service:
+  type: ClusterIP
+  port: 80
+
+# Message shown on the welcome page served by nginx.
+welcomeMessage: "Hello from my Helm chart!"
+
+resources:
+  limits:
+    cpu: 250m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 64Mi
