@@ -1,0 +1,80 @@
+# Copy this file to .github/workflows/security-scan.yml in your repo.
+# It runs on every push and pull request and fails the build on
+# HIGH/CRITICAL container findings and on Checkov failures.
+name: Security scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  container-scan:
+    name: Trivy image scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t scan-demo:${{ github.sha }} app/
+
+      - name: Scan image
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: scan-demo:${{ github.sha }}
+          format: sarif
+          output: trivy-image.sarif
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+
+      - name: Upload results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-image.sarif
+
+  iac-scan:
+    name: Checkov IaC scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan Terraform
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: terraform
+          framework: terraform
+          output_format: sarif
+          output_file_path: checkov.sarif
+
+      - name: Upload results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: checkov.sarif
+
+  repo-scan:
+    name: Trivy repo scan (misconfigurations and secrets)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan repository
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: trivy-repo.sarif
+          scanners: misconfig,secret
+          exit-code: "0"
+
+      - name: Upload results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-repo.sarif
