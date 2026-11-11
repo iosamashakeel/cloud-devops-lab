@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: demo-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    # Point this at your own fork of the lab repo.
+    repoURL: https://github.com/iosamashakeel/cloud-devops-lab.git
+    targetRevision: HEAD
+    path: exercises/15-gitops-with-argocd/demo-app
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: demo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
