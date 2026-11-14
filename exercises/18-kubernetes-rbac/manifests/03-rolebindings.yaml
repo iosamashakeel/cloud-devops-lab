@@ -1,0 +1,29 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: deployer-binding
+  namespace: rbac-lab
+subjects:
+  - kind: ServiceAccount
+    name: deployer
+    namespace: rbac-lab
+roleRef:
+  kind: Role
+  name: deployer
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: reader-binding
+  namespace: rbac-lab
+subjects:
+  - kind: ServiceAccount
+    name: reader
+    namespace: rbac-lab
+roleRef:
+  kind: Role
+  name: reader
+  apiGroup: rbac.authorization.k8s.io
+# Note: there is deliberately NO binding for the "intruder"
+# ServiceAccount. It can do nothing in this namespace.
