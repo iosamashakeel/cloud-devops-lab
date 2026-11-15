@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-api
+  namespace: ingress-lab
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # The api backend only serves one file, /index.json. Rewrite /api (and
+    # anything under it) to that file so the request the pod sees is valid.
+    # Kept in a separate Ingress so the rewrite only applies to this route.
+    nginx.ingress.kubernetes.io/rewrite-target: /index.json
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - demo.local
+      secretName: demo-tls
+  rules:
+    - host: demo.local
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: api
+                port:
+                  number: 80

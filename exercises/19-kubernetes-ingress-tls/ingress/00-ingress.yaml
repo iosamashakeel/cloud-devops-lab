@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-web
+  namespace: ingress-lab
+  annotations:
+    # Redirect all plain HTTP traffic to HTTPS.
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - demo.local
+      secretName: demo-tls
+  rules:
+    - host: demo.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port:
+                  number: 80
