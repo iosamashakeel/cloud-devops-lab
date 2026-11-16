@@ -1,0 +1,16 @@
+# Headless Service: clusterIP None means no load balancing, just DNS.
+# Each pod gets its own address: web-0.web, web-1.web, web-2.web
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: stateful-lab
+  labels:
+    app: web
+spec:
+  clusterIP: None
+  selector:
+    app: web
+  ports:
+    - name: http
+      port: 80

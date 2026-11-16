@@ -1,0 +1,62 @@
+# StatefulSet with one PersistentVolumeClaim per pod.
+# The init container writes a page into the pod's volume. Because the volume
+# survives pod deletion, the counter file proves the data came back.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: web
+  namespace: stateful-lab
+spec:
+  serviceName: web
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      initContainers:
+        - name: write-page
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              if [ -f /data/counter.txt ]; then
+                COUNT=$(cat /data/counter.txt)
+                COUNT=$((COUNT + 1))
+              else
+                COUNT=1
+              fi
+              echo "$COUNT" > /data/counter.txt
+              echo "<h1>Hello from $HOSTNAME</h1><p>Starts so far: $COUNT</p><p>This page lives on a PersistentVolume.</p>" > /usr/share/nginx/html/index.html
+              echo "Pod $HOSTNAME wrote its page, start #$COUNT"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: html
+              mountPath: /usr/share/nginx/html
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+              name: http
+          volumeMounts:
+            - name: html
+              mountPath: /usr/share/nginx/html
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: html
+          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
