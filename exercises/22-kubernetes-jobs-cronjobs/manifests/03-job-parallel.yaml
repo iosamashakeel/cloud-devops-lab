@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: batch-processor
+  namespace: jobs-lab
+spec:
+  # Six slices of work in total, three pods at a time.
+  completions: 6
+  parallelism: 3
+  # Indexed mode: each pod gets JOB_COMPLETION_INDEX (0-5) and processes
+  # only its own slice. Without this, every pod would do the same work.
+  completionMode: Indexed
+  backoffLimit: 2
+  # Kill the whole Job if it takes longer than 10 minutes, even if some
+  # pods already finished — a hung pod must not block the batch forever.
+  activeDeadlineSeconds: 600
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        app: batch-processor
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: worker
+          image: python:3.12-slim
+          command: ["python", "/scripts/process.py"]
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+      volumes:
+        - name: scripts
+          configMap:
+            name: report-script
+            defaultMode: 0555

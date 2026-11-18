@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: daily-report
+  namespace: jobs-lab
+spec:
+  # Give up after 3 failed attempts (the first run + 3 retries),
+  # with exponential backoff between attempts.
+  backoffLimit: 3
+  # Clean the finished Job (and its pods) up 5 minutes after it completes,
+  # so `kubectl get jobs` does not fill up with old runs.
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        app: daily-report
+    spec:
+      # A failed pod is replaced by a brand-new pod, not restarted in place.
+      restartPolicy: Never
+      containers:
+        - name: report
+          image: python:3.12-slim
+          command: ["python", "/scripts/report.py"]
+          env:
+            - name: REPORT_DAY
+              value: "2026-11-16"
+            - name: REPORT_SEED
+              value: "42"
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+      volumes:
+        - name: scripts
+          configMap:
+            name: report-script
+            defaultMode: 0555

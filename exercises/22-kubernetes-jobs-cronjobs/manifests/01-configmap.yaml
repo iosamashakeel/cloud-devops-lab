@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: report-script
+  namespace: jobs-lab
+data:
+  report.py: |
+    """One-off daily report: pretend to process a day of orders.
+
+    In a real setup this would read from a database or an object store.
+    Here it generates deterministic fake data so the Job is easy to
+    verify: run it twice and the totals are the same.
+    """
+    import json
+    import os
+    import random
+    import sys
+
+    def main() -> int:
+        day = os.environ.get("REPORT_DAY", "2026-11-16")
+        seed = int(os.environ.get("REPORT_SEED", "42"))
+        rng = random.Random(seed)
+
+        orders = [
+            {"id": i, "amount": round(rng.uniform(5.0, 250.0), 2)}
+            for i in range(120)
+        ]
+        total = round(sum(o["amount"] for o in orders), 2)
+        biggest = max(orders, key=lambda o: o["amount"])
+
+        report = {
+            "day": day,
+            "orders": len(orders),
+            "total_revenue": total,
+            "average_order": round(total / len(orders), 2),
+            "biggest_order": biggest,
+        }
+        print(json.dumps(report, indent=2))
+        print(f"Report for {day}: {len(orders)} orders, "
+              f"total revenue {total:.2f} EUR")
+        return 0
+
+    if __name__ == "__main__":
+        sys.exit(main())
+  process.py: |
+    """One slice of a parallel batch job.
+
+    The pod's slice is decided by JOB_COMPLETION_INDEX, which Kubernetes
+    sets automatically when completionMode is Indexed. With 6 completions
+    and 10 items per pod, index 0 processes items 0-9, index 1 does 10-19,
+    and so on.
+    """
+    import os
+    import sys
+    import time
+
+    ITEMS_PER_POD = 10
+
+    def main() -> int:
+        index = int(os.environ.get("JOB_COMPLETION_INDEX", "0"))
+        start = index * ITEMS_PER_POD
+        items = range(start, start + ITEMS_PER_POD)
+
+        processed = 0
+        for item in items:
+            # Simulate real work: a short, deterministic computation.
+            _ = sum(i * i for i in range(item, item + 1000))
+            processed += 1
+            time.sleep(0.1)
+
+        print(f"Pod index {index}: processed items {start}-"
+              f"{start + ITEMS_PER_POD - 1} ({processed} items)")
+        return 0
+
+    if __name__ == "__main__":
+        sys.exit(main())
