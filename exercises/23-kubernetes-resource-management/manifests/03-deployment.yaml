@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: resources-lab
+  labels:
+    app: web
+    qos: guaranteed
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+          # Requests equal limits for both CPU and memory, on every
+          # container: that is what makes this pod Guaranteed QoS.
+          # These are the last pods evicted under memory pressure.
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi

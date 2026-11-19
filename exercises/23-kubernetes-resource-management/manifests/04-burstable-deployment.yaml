@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+  namespace: resources-lab
+  labels:
+    app: worker
+    qos: burstable
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+    spec:
+      containers:
+        - name: worker
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+          # Requests only, no limits: Burstable QoS. Note the LimitRange
+          # still injects a default limit (500m / 256Mi) at admission,
+          # so this pod is bounded even though its author set no limit.
+          # Requests differ from limits, so it stays Burstable.
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi

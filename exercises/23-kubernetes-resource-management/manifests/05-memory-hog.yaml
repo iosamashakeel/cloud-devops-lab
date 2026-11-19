@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: memory-hog
+  namespace: resources-lab
+  labels:
+    app: memory-hog
+spec:
+  # Never restart: we want the OOMKilled pod to stay visible so the
+  # termination reason can be inspected afterwards.
+  restartPolicy: Never
+  containers:
+    - name: hog
+      image: python:3.12-slim
+      command:
+        - python3
+        - -u
+        - -c
+        - |
+          import time
+          chunks = []
+          for i in range(30):
+              chunks.append(bytearray(10 * 1024 * 1024))
+              print(f"allocated {(i + 1) * 10} MB", flush=True)
+              time.sleep(0.5)
+          print("done, holding memory", flush=True)
+          time.sleep(3600)
+      resources:
+        requests:
+          cpu: 100m
+          memory: 64Mi
+        # 128Mi is far less than the 300 MB the script tries to allocate,
+        # so the kernel kills this container with OOMKilled (exit 137)
+        # after roughly 110 MB.
+        limits:
+          cpu: 500m
+          memory: 128Mi

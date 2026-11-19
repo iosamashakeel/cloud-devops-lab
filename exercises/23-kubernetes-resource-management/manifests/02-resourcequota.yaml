@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: team-quota
+  namespace: resources-lab
+spec:
+  hard:
+    # Total requests across the namespace. The scheduler counts these,
+    # not actual usage, so a quota can refuse work on a node that still
+    # has spare capacity.
+    requests.cpu: "2"
+    requests.memory: 2Gi
+    # Total limits across the namespace.
+    limits.cpu: "4"
+    limits.memory: 4Gi
+    # No more than 10 pods in this namespace, whatever they ask for.
+    pods: "10"

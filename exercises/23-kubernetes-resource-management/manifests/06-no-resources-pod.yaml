@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: no-resources
+  namespace: resources-lab
+  labels:
+    app: no-resources
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.27-alpine
+      ports:
+        - containerPort: 80
+      # Deliberately no resources block at all. The LimitRange injects
+      # the defaults (100m / 128Mi requested, 500m / 256Mi limit), so
+      # this pod ends up Burstable instead of BestEffort.

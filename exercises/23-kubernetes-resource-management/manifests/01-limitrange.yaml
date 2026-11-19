@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: defaults
+  namespace: resources-lab
+spec:
+  limits:
+    # Every container in this namespace gets these values unless it sets
+    # its own. Nothing here runs unbounded, even by accident.
+    - default:
+        cpu: 500m
+        memory: 256Mi
+      defaultRequest:
+        cpu: 100m
+        memory: 128Mi
+      # A single container may never ask for more than this.
+      max:
+        cpu: "2"
+        memory: 1Gi
+      # ... or less than this.
+      min:
+        cpu: 50m
+        memory: 64Mi
+      type: Container
