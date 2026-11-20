@@ -1,0 +1,62 @@
+# Hardened nginx deployment. Uses the unprivileged nginx image, which
+# listens on port 8080 and runs as uid 101 — a non-root user cannot bind
+# ports below 1024. The root filesystem is read-only, so nginx's scratch
+# directories (/tmp, /var/cache/nginx, /var/run) are emptyDir volumes.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: secure-web
+  namespace: security-lab
+  labels:
+    app: secure-web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: secure-web
+  template:
+    metadata:
+      labels:
+        app: secure-web
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: nginx
+          image: nginxinc/nginx-unprivileged:1.27-alpine
+          ports:
+            - containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: cache
+              mountPath: /var/cache/nginx
+            - name: run
+              mountPath: /var/run
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: cache
+          emptyDir: {}
+        - name: run
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: secure-web
+  namespace: security-lab
+spec:
+  selector:
+    app: secure-web
+  ports:
+    - port: 8080
+      targetPort: 8080
