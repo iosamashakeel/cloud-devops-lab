@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: debug
+  namespace: discovery-lab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: debug
+  template:
+    metadata:
+      labels:
+        app: debug
+    spec:
+      containers:
+        - name: netshoot
+          # netshoot ships nslookup, dig, curl, ping, tcpdump, ...
+          image: nicolaka/netshoot:latest
+          command: ["sleep", "infinity"]

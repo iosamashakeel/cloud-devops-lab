@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-headless
+  namespace: discovery-lab
+spec:
+  # No virtual IP: DNS returns the pod IPs directly.
+  clusterIP: None
+  selector:
+    app: backend
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
