@@ -1,0 +1,34 @@
+# Deliberately broken: the Service selects app=web, but the pods it is
+# meant to serve are labelled app=web-app, so it gets no endpoints.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app
+  namespace: lab-troubleshooting
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web-app
+  template:
+    metadata:
+      labels:
+        app: web-app
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orphan-svc
+  namespace: lab-troubleshooting
+spec:
+  selector:
+    app: web
+  ports:
+    - port: 80
+      targetPort: 80

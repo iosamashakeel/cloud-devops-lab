@@ -1,0 +1,28 @@
+# Deliberately broken: the readiness probe checks /healthz, but nginx
+# only serves / here, so the probe 404s and the pod never becomes ready.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sick
+  namespace: lab-troubleshooting
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sick
+  template:
+    metadata:
+      labels:
+        app: sick
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: 2
+            periodSeconds: 5

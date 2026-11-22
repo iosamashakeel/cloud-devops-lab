@@ -1,0 +1,26 @@
+# The fixed version of the crashloop pod: same image, a command that
+# actually works, plus a readiness probe so it reports Ready.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crashloop-fixed
+  namespace: lab-troubleshooting
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: crashloop-fixed
+  template:
+    metadata:
+      labels:
+        app: crashloop-fixed
+    spec:
+      containers:
+        - name: web
+          image: busybox:1.36
+          command: ["sh", "-c", "while true; do echo hello; sleep 30; done"]
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "true"]
+            initialDelaySeconds: 2
+            periodSeconds: 5

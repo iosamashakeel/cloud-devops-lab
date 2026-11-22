@@ -1,0 +1,6 @@
+# Single-node kind cluster for the troubleshooting exercise.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: lab-troubleshoot
+nodes:
+  - role: control-plane

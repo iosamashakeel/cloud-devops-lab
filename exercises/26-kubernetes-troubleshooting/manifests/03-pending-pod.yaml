@@ -1,0 +1,29 @@
+# Deliberately broken: requests 64 CPUs, more than any node in a local
+# cluster has, so the scheduler can never place it.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hungry
+  namespace: lab-troubleshooting
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hungry
+  template:
+    metadata:
+      labels:
+        app: hungry
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "64"
+              memory: "128Mi"
+            limits:
+              cpu: "64"
+              memory: "128Mi"

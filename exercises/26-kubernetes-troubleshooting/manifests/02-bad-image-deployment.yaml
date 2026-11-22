@@ -1,0 +1,21 @@
+# Deliberately broken: nginx:9.9.9 does not exist, so the image pull fails.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bad-image
+  namespace: lab-troubleshooting
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bad-image
+  template:
+    metadata:
+      labels:
+        app: bad-image
+    spec:
+      containers:
+        - name: web
+          image: nginx:9.9.9
+          ports:
+            - containerPort: 80
