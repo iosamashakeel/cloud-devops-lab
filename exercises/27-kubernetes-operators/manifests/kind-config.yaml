@@ -1,0 +1,6 @@
+# Single-node kind cluster for the operators exercise.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: lab-operators
+nodes:
+  - role: control-plane

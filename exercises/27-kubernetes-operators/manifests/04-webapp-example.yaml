@@ -1,0 +1,9 @@
+apiVersion: example.lab/v1
+kind: WebApp
+metadata:
+  name: hello
+  namespace: lab-operators
+spec:
+  image: nginx:1.27
+  replicas: 2
+  message: "Hello from the operator!"

@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp-operator
+  namespace: lab-operators
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webapp-operator
+  template:
+    metadata:
+      labels:
+        app: webapp-operator
+    spec:
+      serviceAccountName: webapp-operator
+      containers:
+        - name: operator
+          # Built locally by scripts/setup.sh and loaded into the
+          # kind cluster, so the image is never pulled from a registry.
+          image: webapp-operator:dev
+          imagePullPolicy: Never
