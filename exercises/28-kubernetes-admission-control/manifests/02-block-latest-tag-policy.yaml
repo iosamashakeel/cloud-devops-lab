@@ -1,0 +1,58 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: block-latest-tag
+  annotations:
+    policies.kyverno.io/title: Block Latest Image Tag
+    policies.kyverno.io/category: Other
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/description: >-
+      No container may use the "latest" tag or an untagged image.
+      Pin every image to a specific version so a deployment is
+      reproducible. Platform namespaces are excluded.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: block-latest
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+                - kyverno
+                - local-path-storage
+      validate:
+        message: >-
+          Using the "latest" image tag is not allowed. Pin the image
+          to a specific version, for example nginx:1.27.
+        pattern:
+          spec:
+            containers:
+              - image: "!*:latest"
+    - name: require-image-tag
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+                - kyverno
+                - local-path-storage
+      validate:
+        message: >-
+          Every container image must carry an explicit tag.
+          "nginx" is not enough, use "nginx:1.27".
+        pattern:
+          spec:
+            containers:
+              - image: "*:*"

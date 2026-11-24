@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bad-app
+  namespace: lab-admission
+  # Deliberately broken in four ways, one per policy:
+  #   1. no app/team labels        -> require-labels
+  #   2. image uses the latest tag -> block-latest-tag
+  #   3. no resource limits        -> require-resource-limits
+  #   4. runs as root               -> require-non-root
+  # Apply it and watch Kyverno reject the request. Then fix it
+  # one violation at a time and apply again.
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bad-app
+  template:
+    metadata:
+      labels:
+        app: bad-app
+    spec:
+      containers:
+        - name: web
+          image: nginx:latest
+          ports:
+            - containerPort: 80

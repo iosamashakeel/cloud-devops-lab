@@ -1,0 +1,38 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-labels
+  annotations:
+    policies.kyverno.io/title: Require App and Team Labels
+    policies.kyverno.io/category: Other
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/description: >-
+      Every Pod must carry the labels "app" and "team", so selectors,
+      dashboards and cost reports can find it. Platform namespaces
+      are excluded so the cluster itself is never blocked.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-app-team-labels
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+                - kyverno
+                - local-path-storage
+      validate:
+        message: >-
+          Every Pod must have the labels "app" and "team".
+          Add them to the Pod template metadata.
+        pattern:
+          metadata:
+            labels:
+              app: "?*"
+              team: "?*"
