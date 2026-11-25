@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lab-mesh
+  labels:
+    app: lab-mesh
+    team: platform
+  # Every pod created in this namespace gets a Linkerd proxy
+  # sidecar injected automatically.
+  annotations:
+    linkerd.io/inject: enabled

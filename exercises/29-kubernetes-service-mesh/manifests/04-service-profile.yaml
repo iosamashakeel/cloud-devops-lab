@@ -1,0 +1,37 @@
+apiVersion: linkerd.io/v1alpha2
+kind: ServiceProfile
+metadata:
+  name: web.lab-mesh.svc.cluster.local
+  namespace: lab-mesh
+spec:
+  # Linkerd only collects per-route metrics and applies retries for
+  # routes listed here. Unlisted paths still work, they just show up
+  # as a single "[DEFAULT]" route in the dashboard.
+  routes:
+    - name: GET /
+      condition:
+        method: GET
+        pathRegex: /
+      # A 5xx from the app counts as a failure for this route. That
+      # is what makes the /unstable endpoint visible in the golden
+      # metrics instead of silently counting as a success.
+      responseClasses:
+        - condition:
+            status:
+              min: 500
+              max: 599
+          isFailure: true
+    - name: GET /health
+      condition:
+        method: GET
+        pathRegex: /health
+    - name: GET /unstable
+      condition:
+        method: GET
+        pathRegex: /unstable
+      responseClasses:
+        - condition:
+            status:
+              min: 500
+              max: 599
+          isFailure: true
