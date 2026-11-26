@@ -1,0 +1,19 @@
+# Leaf certificate for the demo web app. 90 days, renewed
+# automatically 30 days before expiry (renewBefore).
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: web-tls
+  namespace: lab-certs
+spec:
+  secretName: web-tls
+  duration: 2160h # 90 days
+  renewBefore: 720h # 30 days
+  commonName: web.lab.local
+  dnsNames:
+    - web.lab.local
+    - www.web.lab.local
+  issuerRef:
+    name: lab-ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io

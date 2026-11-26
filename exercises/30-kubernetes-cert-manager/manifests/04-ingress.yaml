@@ -1,0 +1,33 @@
+# Ingress serving the app over HTTPS with the cert-manager
+# issued certificate. The tls.secretName must match the
+# Certificate's secretName in 03-certificate.yaml.
+#
+# Requires an ingress controller (see setup.sh, which installs
+# ingress-nginx). With kind, reach it on the controller's HTTPS
+# NodePort: kubectl get svc -n ingress-nginx ingress-nginx-controller
+# -o jsonpath='{.spec.ports[?(@.name=="https")].nodePort}'
+# and add "127.0.0.1 web.lab.local" to /etc/hosts.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web
+  namespace: lab-certs
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - web.lab.local
+      secretName: web-tls
+  rules:
+    - host: web.lab.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port:
+                  number: 80
